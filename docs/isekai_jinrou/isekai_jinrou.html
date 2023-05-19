@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title>異世界チート神狼（痛）用ボイス集</title>
+<meta charset="UTF-8">
+
+<style>
+ul#voice_list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul > li { margin-bottom: 9px;}
+
+div.voice-name , div.count-time {display: inline-block;}
+
+div.voice-name {
+    border-bottom: 1px solid black;
+    width: 210px;
+}
+</style>
+</head>
+<body>
+
+<h2>異世界チート神狼（痛）用ボイス集</h2>
+
+<ul id="voice_list"></ul>
+
+<button onclick="play()">play</button>
+
+</body>
+</html>
+
+<script type="text/javascript">
+'use strict';
+
+const voice_list = [
+    {filename: "01_夜のターンです.mp3", play: true},
+    {filename: "20_反乱軍と密偵.mp3", play: true, wait: 5},
+    {filename: "11_呪術師.mp3", play: true, wait: 10},
+    {filename: "21_闇司祭.mp3", play: true, wait: 10},
+    {filename: "22_救世主.mp3", play: false, wait: 10},
+    {filename: "12_転生者.mp3", play: true, wait: 10},
+    {filename: "02_夜のターンを終了します.mp3", play: true},
+]
+
+let test_flg = true;
+window.addEventListener("load", () => {
+    const ul = document.getElementById("voice_list");
+    for(const i in voice_list) {
+        const li = document.createElement("li");
+        ul.appendChild(li);
+        
+        // checkbox + label
+        {
+            // 包含用の div
+            const div = document.createElement("div");
+            div.classList.add("voice-name");
+            li.appendChild(div);
+            
+            // input と label を連動させる用（設定先は input.id, input.name, label.for）
+            const id = `m_${i}`;
+            
+            // checkbox を作りつつ、属性を盛る
+            const checkbox = document.createElement("input");
+            div.appendChild(checkbox);
+            
+            checkbox.setAttribute("type", "checkbox");
+            checkbox.setAttribute("id", id);
+            checkbox.setAttribute("name", id);
+            checkbox.setAttribute("index", i);
+            checkbox.classList.add("v_chk_box");
+            
+            // デフォルトで再生するものは checkbox にチェックをつける
+            if(voice_list[i].play) checkbox.toggleAttribute("checked");
+            
+            // checkbox の状態と配列のステータスを連動させる
+            checkbox.addEventListener('change', function() {
+                voice_list[this.getAttribute("index")].play = this.checked;
+            });
+            
+            // label 作成
+            const label = document.createElement("label");
+            div.appendChild(label);
+            
+            label.setAttribute("for", id);
+            
+            const filename = voice_list[i].filename;
+            const start = filename.indexOf("_") + 1;
+            const end = filename.indexOf(".");
+            label.innerText = filename.substring(start, end);
+        }
+        
+        if( ! ("wait" in voice_list[i]) ) continue;
+        
+        // label + select
+        {
+            // 包含用の div
+            const div = document.createElement("div");
+            div.classList.add("count-time");
+            li.appendChild(div);
+            
+            // 連動用 id
+            const id = `ct_${i}`;
+            
+            // label 作成
+            const label = document.createElement("label");
+            div.appendChild(label);
+            
+            label.setAttribute("for", id);
+            label.innerText = "待時間:";
+            
+            // select 作成
+            const select = document.createElement("select");
+            div.appendChild(select);
+            
+            select.setAttribute("id", id);
+            select.setAttribute("name", id);
+            select.setAttribute("index", i);
+            
+            // select の状態と配列のステータスを連動させる
+            select.addEventListener('change', function() {
+                voice_list[this.getAttribute("index")].wait = Number(this.value);
+            });
+            
+            // 選択項目をセット
+            [3, 5, 10].forEach(t => {
+                const option = document.createElement("option");
+                select.appendChild(option);
+                
+                option.setAttribute("value", t);
+                option.innerText = `${t}秒`;
+                
+                // リストのデフォルトを設定
+                if(voice_list[i].wait == t) option.toggleAttribute("selected");
+            });
+        }
+    }
+});
+
+function play() {
+    // Audioのリストを作成しつつ、待機時間用のファイルを挟み込む
+    const audio_list = [];
+    voice_list.filter(v => v.play).forEach(v => {
+        audio_list.push(new Audio(`music/${v.filename}`));
+        
+        if("wait" in v) audio_list.push(new Audio(`music/90_${v.wait}秒待ちます.mp3`));
+    });
+    
+    // 連続再生の設定
+    for(let i = 1; i < audio_list.length; i++) {
+        const current = audio_list[i-1];
+        const next = audio_list[i];
+        
+        // 再生終了時、次のファイルを再生する
+        current.addEventListener("ended", () => {
+            setTimeout(() => {
+                // 即時再生だと早すぎるので、てきとうに間を開ける
+                next.play();
+            }, 800);
+        });
+    }
+    
+    // 1つ目を再生
+    audio_list[0].play();
+}
+</script> 
